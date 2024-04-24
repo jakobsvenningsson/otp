@@ -51,6 +51,7 @@
          cli_exit_status/1,
          close/1,
          daemon_already_started/1,
+         daemon_address_in_use/1,
          daemon_error_closes_port/1,
          daemon_opt_fd/1,
          double_close/1,
@@ -695,6 +696,20 @@ daemon_already_started(Config) when is_list(Config) ->
 						     {failfun,
 						      fun ssh_test_lib:failfun/2}]),
     ssh:stop_daemon(Pid).
+
+%%--------------------------------------------------------------------
+%%% Test that the correct error message is returned if you try to
+%%% start a daemon on an address that is already in use.
+daemon_address_in_use(Config) when is_list(Config) ->
+    SystemDir = proplists:get_value(data_dir, Config),
+    UserDir = proplists:get_value(priv_dir, Config),
+    {ok, LSock} = gen_tcp:listen(_Port = 0, []),
+    {ok, {_LHost, LPort}} = inet:sockname(LSock),
+    {error, eaddrinuse} = ssh_test_lib:daemon(LPort, [{system_dir, SystemDir},
+                                                      {user_dir, UserDir},
+                                                      {failfun,
+                                                       fun ssh_test_lib:failfun/2}]),
+    gen_tcp:close(LSock).
 
 %%--------------------------------------------------------------------
 %%% Test that a failed daemon start does not leave the port open

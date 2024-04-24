@@ -139,7 +139,12 @@ start_subsystem(Role, Address=#address{}, Socket, Options0) ->
 
 %%%----------------------------------------------------------------
 start_link(Role, Address, Options) ->
-    supervisor:start_link(?MODULE, [Role, Address, Options]).
+    case supervisor:start_link(?MODULE, [Role, Address, Options]) of
+        {error, {shutdown, {failed_to_start_child, _, Error}}} ->
+            {error, Error};
+        Other ->
+            Other
+    end.
 
 %%%----------------------------------------------------------------
 addresses(Role,  #address{address=Address, port=Port, profile=Profile}) ->

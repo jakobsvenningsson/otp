@@ -629,6 +629,9 @@ daemon(Host0, Port0, UserOptions0) when 0 =< Port0, Port0 =< 65535,
                 {error, {already_started, _}} ->
                     close_listen_socket(ListenSocket, Options1),
                     {error, eaddrinuse};
+                {error, {Error, Ch}} when is_tuple(Ch), element(1, Ch) == child ->
+                    close_listen_socket(ListenSocket, Options1),
+                    {error, Error};
                 {error, Error} ->
                     close_listen_socket(ListenSocket, Options1),
                     {error, Error}
